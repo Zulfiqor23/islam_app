@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Islomiy Kundalik</title>
+  <meta name="description" content="Kundalik Islomiy odatlar va duolar yordamchisi"/>
+  
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#1C5C3E"/>
+  
+  <!-- iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Kundalik"/>
+  <link rel="apple-touch-icon" href="/public/icon-192.png"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+  
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ONBOARDING (first time) -->
+<div id="onboarding" class="fullscreen-overlay hidden">
+  <div class="onboard-content">
+    <div class="onboard-icon">🕌</div>
+    <h1>Islomiy Kundalik</h1>
+    <p>Har kuni baraka bilan boshlang</p>
+    <div class="onboard-form">
+      <label>Ismingiz</label>
+      <input type="text" id="onboard-name" placeholder="Masalan: Abdulloh" maxlength="30"/>
+      <label style="margin-top:16px">Shahringiz vaqt zonasi (UTC+?)</label>
+      <select id="onboard-tz">
+        <option value="5">UTC+5 (Toshkent, Samarqand, Buxoro)</option>
+        <option value="5">UTC+5 (Andijon, Namangan, Farg'ona)</option>
+        <option value="6">UTC+6 (Qozog'iston sharqi)</option>
+        <option value="3">UTC+3 (Moskva)</option>
+        <option value="0">UTC+0 (London)</option>
+        <option value="4">UTC+4 (Dubai)</option>
+      </select>
+      <button class="btn-primary" id="onboard-submit">Boshlash →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRAYER NOTIFICATION OVERLAY -->
+<div id="notif-overlay" class="fullscreen-overlay hidden notif-prayer">
+  <div class="notif-box">
+    <div class="notif-emoji" id="notif-emoji">🕌</div>
+    <div class="notif-title" id="notif-title">BOMDOD</div>
+    <p class="notif-sub" id="notif-sub">Azonga marhamat!</p>
+    <p class="notif-ayah" id="notif-ayah"></p>
+    <button class="btn-dismiss" id="notif-dismiss">Ibodatga o'tish ✓</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-left">
+      <span class="greeting" id="greeting">Assalomu alaykum</span>
+      <span class="username" id="username-display">Abdulloh</span>
+    </div>
+    <div class="top-bar-right">
+      <span class="clock" id="clock">00:00</span>
+    </div>
+  </header>
+
+  <!-- SCROLLABLE CONTENT -->
+  <main class="main-content" id="main-content">
+
+    <!-- TAB: CHECKLIST -->
+    <div class="tab-panel active" id="tab-checklist">
+      <div class="section-header">
+        <h2>Bugungi Vazifalar</h2>
+        <button class="icon-btn" id="edit-checklist-btn" title="Tahrirlash">✏️</button>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="cl-progress"></div></div>
+        <span class="progress-text" id="cl-progress-text">0 / 0</span>
+      </div>
+      <div class="cards-list" id="checklist-cards"></div>
+      <div class="odat-card hidden" id="odat-card">
+        <h3>🌟 Barakallo!</h3>
+        <p>Kun davomida ko'p aytishni unutmang:</p>
+        <div class="zikr-pills">
+          <span class="pill green">🤲 Istig'for</span>
+          <span class="pill blue">☝️ Kalima</span>
+          <span class="pill gold">💚 Salovot</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DUAS -->
+    <div class="tab-panel hidden" id="tab-duas">
+      <div class="section-header">
+        <h2>Duolar va Zikrlar</h2>
+        <button class="icon-btn" id="edit-duas-btn" title="Tahrirlash">✏️</button>
+      </div>
+      <div class="duas-categories" id="duas-categories"></div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div class="tab-panel hidden" id="tab-settings">
+      <div class="section-header"><h2>Sozlamalar</h2></div>
+
+      <!-- Profile -->
+      <div class="settings-card">
+        <h3>👤 Profil</h3>
+        <div class="form-row">
+          <label>Ismingiz</label>
+          <input type="text" id="s-name" placeholder="Ismingiz"/>
+        </div>
+        <div class="form-row">
+          <label>Vaqt zonasi</label>
+          <select id="s-tz">
+            <option value="5">UTC+5 (O'zbekiston)</option>
+            <option value="3">UTC+3 (Moskva)</option>
+            <option value="0">UTC+0 (London)</option>
+            <option value="4">UTC+4 (Dubai)</option>
+            <option value="6">UTC+6 (Olmaota)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Prayer times -->
+      <div class="settings-card">
+        <h3>🕌 Namoz Vaqtlari</h3>
+        <div class="times-grid">
+          <div class="time-row"><label>Bomdod</label><input type="time" id="s-bomdod"/></div>
+          <div class="time-row"><label>Peshin</label><input type="time" id="s-peshin"/></div>
+          <div class="time-row"><label>Asr</label><input type="time" id="s-asr"/></div>
+          <div class="time-row"><label>Shom</label><input type="time" id="s-shom"/></div>
+          <div class="time-row"><label>Xufton</label><input type="time" id="s-xufton"/></div>
+          <div class="time-row"><label>Juma</label><input type="time" id="s-juma" value="11:20"/></div>
+        </div>
+      </div>
+
+      <!-- Work times -->
+      <div class="settings-card">
+        <h3>💼 Ish Vaqtlari</h3>
+        <div class="times-grid">
+          <div class="time-row"><label>Boshlash</label><input type="time" id="s-work-start"/></div>
+          <div class="time-row"><label>Tugatish</label><input type="time" id="s-work-end"/></div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="settings-card">
+        <h3>🔔 Bildirishnomalar</h3>
+        <div class="notif-status" id="notif-status">
+          <span id="notif-status-text">Bildirishnoma holati tekshirilmoqda...</span>
+        </div>
+        <button class="btn-primary" id="enable-notif-btn">Bildirishnomalarni yoqish</button>
+      </div>
+
+      <button class="btn-primary" id="save-settings-btn" style="margin-top:8px">💾 Saqlash</button>
+    </div>
+
+    <!-- TAB: MAQSADLAR (Goals) -->
+    <div class="tab-panel hidden" id="tab-goals">
+      <div class="section-header">
+        <h2>🎯 Maqsadlar</h2>
+        <button class="icon-btn" id="add-goal-btn" title="Yangi maqsad">＋</button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px">Sura yoki duo o'qish maqsadini belgilang. Sanoq har safar saqlanadi.</p>
+      <!-- Active goals -->
+      <div id="goals-active" class="cards-list"></div>
+      <!-- Completed goals -->
+      <div id="goals-completed-section" class="hidden" style="margin-top:24px">
+        <div class="category-title">✅ Bajarilgan Maqsadlar</div>
+        <div id="goals-completed" class="cards-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: BILIMLAR -->
+    <div class="tab-panel hidden" id="tab-bilimlar">
+      <div class="section-header">
+        <h2>📚 Bilimlar</h2>
+        <button class="icon-btn" id="add-bilim-btn" title="Yangi bilim">＋</button>
+      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Hadislar, fiqh maslahatlari, qimmatli ma’lumotlar va manbalarini to‘plang.</p>
+      <div class="bilim-filter" id="bilim-filter">
+        <button class="pill-btn active" data-cat="all">Hammasi</button>
+        <button class="pill-btn" data-cat="hadis">Hadis</button>
+        <button class="pill-btn" data-cat="duo">Duo</button>
+        <button class="pill-btn" data-cat="fiqh">Fiqh</button>
+        <button class="pill-btn" data-cat="tafsir">Tafsir</button>
+        <button class="pill-btn" data-cat="other">Boshqa</button>
+      </div>
+      <div class="cards-list" id="bilimlar-list"></div>
+    </div>
+
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="checklist" id="nav-checklist">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">Checklist</span>
+    </button>
+    <button class="nav-btn" data-tab="duas" id="nav-duas">
+      <span class="nav-icon">📖</span>
+      <span class="nav-label">Duolar</span>
+    </button>
+    <button class="nav-btn" data-tab="goals" id="nav-goals">
+      <span class="nav-icon">🎯</span>
+      <span class="nav-label">Maqsadlar</span>
+    </button>
+    <button class="nav-btn" data-tab="bilimlar" id="nav-bilimlar">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Bilimlar</span>
+    </button>
+    <button class="nav-btn" data-tab="settings" id="nav-settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Sozlamalar</span>
+    </button>
+  </nav>
+</div>
+
+<!-- EDIT CHECKLIST MODAL -->
+<div id="edit-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modal-title">Checklistni Tahrirlash</h3>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div id="add-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="add-modal-title">Yangi Vazifa Qo'shish</h3>
+      <button class="modal-close" id="add-modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sarlavha *</label><input type="text" id="add-title" placeholder="Vazifa nomi"/></div>
+      <div class="form-row"><label>Arabcha Matn</label><textarea id="add-arabic" rows="3" placeholder="بِسۡمِ اللهِ..."></textarea></div>
+      <div class="form-row"><label>O'qilishi</label><textarea id="add-reading" rows="2" placeholder="Bismillah..."></textarea></div>
+      <div class="form-row"><label>Ma'nosi</label><textarea id="add-meaning" rows="3" placeholder="Allohning nomi bilan..."></textarea></div>
+      <div class="form-row"><label>Necha marta</label><input type="number" id="add-target" value="1" min="1" max="1000"/></div>
+      <div class="form-row"><label>Badge nomi</label><input type="text" id="add-badge" placeholder="1 marta, 11 marta..."/></div>
+      <button class="btn-primary" id="add-save-btn">✓ Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DUA MODAL -->
+<div id="add-dua-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Yangi Duo Qo'shish</h3>
+      <button class="modal-close" id="add-dua-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sarlavha *</label><input type="text" id="dua-title" placeholder="Duo nomi"/></div>
+      <div class="form-row"><label>Kategoriya</label>
+        <select id="dua-category">
+          <option value="uygunish">Uyg'onish</option>
+          <option value="hojatxona">Hojatxona</option>
+          <option value="kecha">Kecha</option>
+          <option value="special">Maxsus</option>
+          <option value="other">Boshqa</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Arabcha Matn</label><textarea id="dua-arabic" rows="3" placeholder="بِسۡمِ اللهِ..."></textarea></div>
+      <div class="form-row"><label>O'qilishi</label><textarea id="dua-reading" rows="2" placeholder="Bismillah..."></textarea></div>
+      <div class="form-row"><label>Ma'nosi</label><textarea id="dua-meaning" rows="3" placeholder="Ma'nosi..."></textarea></div>
+      <button class="btn-primary" id="add-dua-save-btn">✓ Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD GOAL MODAL -->
+<div id="add-goal-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>🎯 Yangi Maqsad</h3>
+      <button class="modal-close" id="add-goal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Maqsad nomi *</label><input type="text" id="goal-title" placeholder="Masalan: Sura Niso"/></div>
+      <div class="form-row"><label>Turkumi</label>
+        <select id="goal-category">
+          <option value="sura">Sura</option>
+          <option value="oyat">Oyat</option>
+          <option value="duo">Duo</option>
+          <option value="zikr">Zikr</option>
+          <option value="other">Boshqa</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Maqsad (nega o'qilyapti?)</label><textarea id="goal-description" rows="3" placeholder="Masalan: Allohdan er va xotinga baxtli hayot so'rash uchun..."></textarea></div>
+      <div class="form-row"><label>Matn (ixtiyoriy)</label><textarea id="goal-text" rows="3" placeholder="Duo yoki oyat matni..."></textarea></div>
+      <div class="form-row"><label>Necha marta *</label><input type="number" id="goal-target" value="1000" min="1" max="1000000" placeholder="1000"/></div>
+      <button class="btn-primary" id="goal-save-btn">✓ Maqsad Qo'yish</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BILIM MODAL -->
+<div id="add-bilim-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📚 Yangi Bilim</h3>
+      <button class="modal-close" id="add-bilim-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Sarlavha / nomi *</label><input type="text" id="bilim-title" placeholder="Masalan: Istig'for fazilati"/></div>
+      <div class="form-row"><label>Turkumi</label>
+        <select id="bilim-category">
+          <option value="hadis">Hadis</option>
+          <option value="duo">Duo</option>
+          <option value="fiqh">Fiqh</option>
+          <option value="tafsir">Tafsir / Oyat</option>
+          <option value="other">Boshqa</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Ma'lumot matni *</label><textarea id="bilim-content" rows="5" placeholder="Hadis, duo yoki bilim matni..."></textarea></div>
+      <div class="form-row"><label>Manbasi</label><input type="text" id="bilim-source" placeholder="Masalan: Buxoriy 6307, Quron 2:255..."/></div>
+      <button class="btn-primary" id="bilim-save-btn">✓ Saqlash</button>
+    </div>
+  </div>
+</div>
+
+<!-- MASHAALLOH CELEBRATION DIALOG -->
+<div id="celebration-overlay" class="fullscreen-overlay hidden" style="background: rgba(0,0,0,0.85); z-index:300">
+  <div class="celebration-box">
+    <div class="celebration-emoji">🌟</div>
+    <h2 class="celebration-title">MashaAlloh!</h2>
+    <p class="celebration-sub">Ilmingiz va amalingiz ziyoda bo'lsin!</p>
+    <p class="celebration-goal-name" id="celebration-goal-name"></p>
+    <div class="celebration-stats" id="celebration-stats"></div>
+    <button class="btn-dismiss" id="celebration-close" style="background: linear-gradient(135deg, #C5A028, #f6d365); color: #1a1a00">Omin 🤲</button>
+  </div>
+</div>
+
+<script src="app.js" type="module"></script>
+</body>
+</html>

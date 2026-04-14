@@ -1,0 +1,13 @@
+{
+  "name": "muslim-daily-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "generate-vapid": "node scripts/generate-vapid.js",
+    "dev": "npx serve . -p 3000"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
