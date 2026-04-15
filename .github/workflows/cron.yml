@@ -1,0 +1,30 @@
+name: Prayer Notifications Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Har 5 daqiqada (GitHub bepul minimum)
+  workflow_dispatch:        # Qo'lda ham ishga tushirish mumkin
+
+jobs:
+  send-notifications:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Call cron endpoint
+        run: |
+          curl -s -o response.json -w "%{http_code}" \
+            -X GET "${{ secrets.VERCEL_APP_URL }}/api/cron" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            > http_code.txt
+
+          HTTP_CODE=$(cat http_code.txt)
+          RESPONSE=$(cat response.json)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $RESPONSE"
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "ERROR: Cron endpoint failed with status $HTTP_CODE"
+            exit 1
+          fi
